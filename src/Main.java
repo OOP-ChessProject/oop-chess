@@ -8,4 +8,4 @@ public class Main {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
-}
+}//the board to start coding
