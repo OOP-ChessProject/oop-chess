@@ -10,4 +10,3 @@ public class Main {
     }
 }//the board to start coding for nowK
 // ok
-//hx
