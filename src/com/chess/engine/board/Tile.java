@@ -1,5 +1,4 @@
 package com.chess.engine.board;
-
 import com.chess.engine.pieces.Piece;
 import java.util.HashMap;
 import java.util.Map;
