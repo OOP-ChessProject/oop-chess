@@ -2,7 +2,8 @@ package com.chess.engine.board;
 import com.chess.engine.pieces.Piece;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collections;
+
+import com.google.common.collect.ImmutableMap;
 
 public abstract class Tile {
 
@@ -14,17 +15,17 @@ public abstract class Tile {
 
         final Map<Integer, EmptyTile> emptyTileMap = new HashMap<>();
 
-        for(int i = 0; i < 64; i++){
+        for(int i = 0; i <Boardutils.NUM_TILES; i++){
             emptyTileMap.put(1, new EmptyTile(i));
         }
-        return Collections.unmodifiableMap(emptyTileMap);
+        return ImmutableMap.copyOf(emptyTileMap);
     }
 
     public static Tile createTile(final int tileCoordinate, final Piece piece){
         return piece != null ? new OccupiedTile(tileCoordinate, piece) : EMPTY_TILES_CACHE.get(tileCoordinate);
     }
 
-    private Tile(int tileCoordinate){
+    private Tile(final int tileCoordinate){
         this.tileCoordinate = tileCoordinate;
     }
 
@@ -35,7 +36,10 @@ public abstract class Tile {
         private EmptyTile(final int coordinate){
             super(coordinate);
         }
-
+@Override
+public String toString(){
+            return"_";
+}
         @Override
         public boolean isTileOccupied(){
             return false;
@@ -51,9 +55,14 @@ public abstract class Tile {
 
         private final Piece pieceOnTile;
 
-        private OccupiedTile(int tileCoordinate, Piece pieceOnTile){
+        private OccupiedTile(int tileCoordinate,final Piece pieceOnTile){
             super(tileCoordinate);
             this.pieceOnTile = pieceOnTile;
+        }
+        @Override
+        public String toString(){
+            return getPiece().getpieceAlliance().isBlack()?getPiece().toString().toLowerCase():
+                    getPiece().toString();
         }
 
         @Override
