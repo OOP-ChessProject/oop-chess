@@ -2,8 +2,7 @@ package com.chess.engine.board;
 import com.chess.engine.pieces.Piece;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 
 public abstract class Tile {
 
@@ -16,9 +15,9 @@ public abstract class Tile {
         final Map<Integer, EmptyTile> emptyTileMap = new HashMap<>();
 
         for(int i = 0; i <Boardutils.NUM_TILES; i++){
-            emptyTileMap.put(1, new EmptyTile(i));
+            emptyTileMap.put(i, new EmptyTile(i));
         }
-        return ImmutableMap.copyOf(emptyTileMap);
+        return Collections.unmodifiableMap(emptyTileMap);
     }
 
     public static Tile createTile(final int tileCoordinate, final Piece piece){
@@ -61,7 +60,7 @@ public String toString(){
         }
         @Override
         public String toString(){
-            return getPiece().getpieceAlliance().isBlack()?getPiece().toString().toLowerCase():
+            return getPiece().getPieceAlliance().isBlack()?getPiece().toString().toLowerCase():
                     getPiece().toString();
         }
 

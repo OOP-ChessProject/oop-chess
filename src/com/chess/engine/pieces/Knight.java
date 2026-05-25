@@ -6,7 +6,8 @@ import com.chess.engine.board.Boardutils;
 
 import com.chess.engine.board.Move;
 import com.chess.engine.board.Tile;
-import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,11 @@ public class Knight extends Piece {
     public Knight(final Alliance PieceAlliance, final int piecePosition) {
 
         super(piecePosition, PieceAlliance);
+    }
+
+    @Override
+    public int getPieceValue() {
+        return 0;
     }
 
     @Override
@@ -69,8 +75,14 @@ public class Knight extends Piece {
             }
         }
 
-        return ImmutableList.copyOf(legalMoves);
+        return Collections.unmodifiableList(legalMoves);
     }
+
+    @Override
+    public Piece movePiece(Move move) {
+        return null;
+    }
+
     @Override
     public String toString(){
         return PieceType.KNIGHT.toString();
