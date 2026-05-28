@@ -14,7 +14,7 @@ public abstract class Tile {
 
         final Map<Integer, EmptyTile> emptyTileMap = new HashMap<>();
 
-        for(int i = 0; i <Boardutils.NUM_TILES; i++){
+        for(int i = 0; i < BoardUtils.NUM_TILES; i++){
             emptyTileMap.put(i, new EmptyTile(i));
         }
         return Collections.unmodifiableMap(emptyTileMap);

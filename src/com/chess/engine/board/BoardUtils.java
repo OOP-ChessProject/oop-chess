@@ -1,6 +1,6 @@
 package com.chess.engine.board;
 
-public class Boardutils {
+public class BoardUtils {
 
     public static final boolean[] FIRST_COLUMN =initColumn(0);
     public static final boolean[] SECOND_COLUMN =initColumn(1);
@@ -14,7 +14,7 @@ public class Boardutils {
     public static final int NUM_TILES=64;
     public static final int NUM_TILES_PER_ROW=8;
 
-    private Boardutils() {
+    private BoardUtils() {
         throw new RuntimeException("Cannot instantiate BoardUtils");
     }
 

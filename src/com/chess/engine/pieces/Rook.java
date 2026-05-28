@@ -2,7 +2,7 @@ package com.chess.engine.pieces;
 
 import com.chess.engine.Alliance;
 import com.chess.engine.board.Board;
-import com.chess.engine.board.Boardutils;
+import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
 import com.chess.engine.board.Tile;
 import com.google.common.collect.ImmutableList;
@@ -32,7 +32,7 @@ public class Rook extends Piece {
 
             int candidateDestinationCoordinate = this.piecePosition;
 
-            while (Boardutils.isValidTileCoordinate(candidateDestinationCoordinate)) {
+            while (BoardUtils.isValidTileCoordinate(candidateDestinationCoordinate)) {
 
                 if (isFirstColumnExclusion(candidateDestinationCoordinate, candidateCoordinateOffset) ||
                         isEighthColumnExclusion(candidateDestinationCoordinate, candidateCoordinateOffset)) {
@@ -41,7 +41,7 @@ public class Rook extends Piece {
 
                 candidateDestinationCoordinate += candidateCoordinateOffset;
 
-                if (Boardutils.isValidTileCoordinate(candidateDestinationCoordinate)) {
+                if (BoardUtils.isValidTileCoordinate(candidateDestinationCoordinate)) {
 
                     final Tile candidateDestinationTile = board.getTile(candidateDestinationCoordinate);
 
@@ -88,13 +88,13 @@ public class Rook extends Piece {
 
     private static boolean isFirstColumnExclusion(final int currentPosition,
                                                   final int candidateOffset) {
-        return Boardutils.FIRST_COLUMN[currentPosition] &&
+        return BoardUtils.FIRST_COLUMN[currentPosition] &&
                 (candidateOffset == -1);
     }
 
     private static boolean isEighthColumnExclusion(final int currentPosition,
                                                    final int candidateOffset) {
-        return Boardutils.EIGHTH_COLUMN[currentPosition] &&
+        return BoardUtils.EIGHTH_COLUMN[currentPosition] &&
                 (candidateOffset == 1 );
     }
 }

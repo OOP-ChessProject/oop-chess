@@ -34,14 +34,14 @@ public class Board {
 
         final StringBuilder builder = new StringBuilder();
 
-        for(int i = 0; i < Boardutils.NUM_TILES; i++) {
+        for(int i = 0; i < BoardUtils.NUM_TILES; i++) {
 
             final String tileText =
                     this.gameBoard.get(i).toString();
 
             builder.append(String.format("%3s", tileText));
 
-            if((i + 1) % Boardutils.NUM_TILES_PER_ROW == 0) {
+            if((i + 1) % BoardUtils.NUM_TILES_PER_ROW == 0) {
                 builder.append("\n");
             }
         }
@@ -90,9 +90,9 @@ public class Board {
             final Builder builder) {
 
         final Tile[] tiles =
-                new Tile[Boardutils.NUM_TILES];
+                new Tile[BoardUtils.NUM_TILES];
 
-        for(int i = 0; i < Boardutils.NUM_TILES; i++) {
+        for(int i = 0; i < BoardUtils.NUM_TILES; i++) {
 
             tiles[i] = Tile.createTile(
                     i,

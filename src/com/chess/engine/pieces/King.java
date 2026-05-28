@@ -1,7 +1,7 @@
 package com.chess.engine.pieces;
 import com.chess.engine.Alliance;
 import com.chess.engine.board.Board;
-import com.chess.engine.board.Boardutils;
+import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
 import com.chess.engine.board.Tile;
 import com.google.common.collect.ImmutableList;
@@ -30,7 +30,7 @@ public class King extends Piece {
             if (isFirstColumnExclusion(this.piecePosition,currentCandidateOffset)|| isEighthColumnExclusion(this.piecePosition,currentCandidateOffset)) {
                 continue;
             }
-            if (Boardutils.isValidTileCoordinate(candidateDestinationCoordinate)) {
+            if (BoardUtils.isValidTileCoordinate(candidateDestinationCoordinate)) {
                 final Tile candidateDestinationTile = board.getTile(candidateDestinationCoordinate);
 
 
@@ -62,7 +62,7 @@ public class King extends Piece {
     private static boolean isFirstColumnExclusion(final int currentPosition,
                                                   final int candidateOffset) {
 
-        return Boardutils.FIRST_COLUMN[currentPosition] &&
+        return BoardUtils.FIRST_COLUMN[currentPosition] &&
                 (candidateOffset == -9||
                         candidateOffset == -1 ||
                         candidateOffset == 7);
@@ -71,7 +71,7 @@ public class King extends Piece {
     private static boolean isEighthColumnExclusion(final int currentPosition,
                                                    final int candidateOffset) {
 
-        return Boardutils.EIGHTH_COLUMN[currentPosition] &&
+        return BoardUtils.EIGHTH_COLUMN[currentPosition] &&
                 (candidateOffset == -7 ||
                         candidateOffset == 1||candidateOffset==9);
     }
