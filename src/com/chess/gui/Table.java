@@ -11,6 +11,8 @@ import com.chess.engine.player.ai.MoveStrategy;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -91,27 +93,27 @@ public class Table extends Observable {
         Table.get().getBoardPanel().drawBoard(Table.get().getGameBoard());
     }
 
-    private Board getGameBoard() {
+    public Board getGameBoard() {
         return this.chessBoard;
     }
 
-    private MoveLog getMoveLog() {
+    public MoveLog getMoveLog() {
         return this.moveLog;
     }
 
-    private GameHistoryPanel getGameHistoryPanel() {
+    public GameHistoryPanel getGameHistoryPanel() {
         return this.gameHistoryPanel;
     }
 
-    private TakenPiecesPanel getTakenPiecesPanel() {
+    public TakenPiecesPanel getTakenPiecesPanel() {
         return this.takenPiecesPanel;
     }
 
-    private BoardPanel getBoardPanel() {
+    public BoardPanel getBoardPanel() {
         return this.boardPanel;
     }
 
-    private GameSetup getGameSetup() {
+    public GameSetup getGameSetup() {
         return this.gameSetup;
     }
 
@@ -121,8 +123,8 @@ public class Table extends Observable {
 
     private void updateComputerMove(final Move move) {
         final MoveTransition transition = this.chessBoard.currentPlayer().makeMove(move);
-        if (transition.moveStatus().isDone()) {
-            this.chessBoard = transition.transitionBoard();
+        if (transition.getMoveStatus().isDone()) {
+            this.chessBoard = transition.getTransitionBoard();
             this.moveLog.addMove(move);
             this.gameHistoryPanel.redo(chessBoard, this.moveLog);
             this.takenPiecesPanel.redo(this.moveLog);
@@ -146,11 +148,21 @@ public class Table extends Observable {
     private JMenu createFileMenu() {
         final JMenu fileMenu = new JMenu("File");
         final JMenuItem resetMenuItem = new JMenuItem("New Game");
-        resetMenuItem.addActionListener(e -> undoAllMoves());
+        resetMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                undoAllMoves();
+            }
+        });
         fileMenu.add(resetMenuItem);
 
         final JMenuItem exitMenuItem = new JMenuItem("Exit");
-        exitMenuItem.addActionListener(e -> System.exit(0));
+        exitMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
         fileMenu.add(exitMenuItem);
         return fileMenu;
     }
@@ -158,17 +170,23 @@ public class Table extends Observable {
     private JMenu createPreferencesMenu() {
         final JMenu preferencesMenu = new JMenu("Preferences");
         final JMenuItem flipBoardMenuItem = new JMenuItem("Flip Board Orientation");
-        flipBoardMenuItem.addActionListener(e -> {
-            boardDirection = boardDirection.opposite();
-            boardPanel.drawBoard(chessBoard);
+        flipBoardMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boardDirection = boardDirection.opposite();
+                boardPanel.drawBoard(chessBoard);
+            }
         });
         preferencesMenu.add(flipBoardMenuItem);
 
         preferencesMenu.addSeparator();
         final JCheckBoxMenuItem cbLegalMoveHighlighter = new JCheckBoxMenuItem("Highlight Legal Moves", true);
-        cbLegalMoveHighlighter.addActionListener(e -> {
-            highlightLegalMoves = cbLegalMoveHighlighter.isSelected();
-            boardPanel.drawBoard(chessBoard);
+        cbLegalMoveHighlighter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightLegalMoves = cbLegalMoveHighlighter.isSelected();
+                boardPanel.drawBoard(chessBoard);
+            }
         });
         preferencesMenu.add(cbLegalMoveHighlighter);
         return preferencesMenu;
@@ -177,9 +195,12 @@ public class Table extends Observable {
     private JMenu createOptionsMenu() {
         final JMenu optionsMenu = new JMenu("Options");
         final JMenuItem setupGameMenuItem = new JMenuItem("Setup Match Variant");
-        setupGameMenuItem.addActionListener(e -> {
-            Table.get().getGameSetup().promptUser();
-            Table.get().moveMadeUpdate(Table.get().getGameBoard());
+        setupGameMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Table.get().getGameSetup().promptUser();
+                Table.get().moveMadeUpdate(Table.get().getGameBoard());
+            }
         });
         optionsMenu.add(setupGameMenuItem);
         return optionsMenu;
@@ -198,15 +219,12 @@ public class Table extends Observable {
         this.boardPanel.drawBoard(chessBoard);
     }
 
-    // UPDATED GAME OVER DETECTION LOGIC: Force checks current player status explicitly
     private void checkGameStatus() {
         boolean hasLegalMoves = false;
-
-        // Loop over the active calculated legal moves to verify if any pass escape validation
         if (this.chessBoard.currentPlayer().getLegalMoves() != null) {
             for (final Move move : this.chessBoard.currentPlayer().getLegalMoves()) {
                 final MoveTransition transition = this.chessBoard.currentPlayer().makeMove(move);
-                if (transition.moveStatus().isDone()) {
+                if (transition.getMoveStatus().isDone()) {
                     hasLegalMoves = true;
                     break;
                 }
@@ -215,7 +233,6 @@ public class Table extends Observable {
 
         if (!hasLegalMoves) {
             if (this.chessBoard.currentPlayer().isInCheck()) {
-                // If it's White's turn right now, and they have zero escape routes while checked, Black delivered the checkmate
                 String winningSide = this.chessBoard.currentPlayer().getAlliance().isWhite() ? "Black" : "White";
                 JOptionPane.showMessageDialog(this.gameFrame,
                         "CHECKMATE! " + winningSide + " wins the game!",
@@ -228,6 +245,22 @@ public class Table extends Observable {
                         JOptionPane.INFORMATION_MESSAGE);
             }
         }
+    }
+
+    public enum BoardDirection {
+        NORMAL {
+            @Override
+            BoardDirection opposite() {
+                return FLIPPED;
+            }
+        },
+        FLIPPED {
+            @Override
+            BoardDirection opposite() {
+                return NORMAL;
+            }
+        };
+        abstract BoardDirection opposite();
     }
 
     private class BoardPanel extends JPanel {
@@ -320,8 +353,8 @@ public class Table extends Observable {
                                 destinationTile = clickedTile;
                                 final Move move = Move.MoveFactory.createMove(chessBoard, sourceTile.getTileCoordinate(), destinationTile.getTileCoordinate());
                                 final MoveTransition transition = chessBoard.currentPlayer().makeMove(move);
-                                if (transition.moveStatus().isDone()) {
-                                    chessBoard = transition.transitionBoard();
+                                if (transition.getMoveStatus().isDone()) {
+                                    chessBoard = transition.getTransitionBoard();
                                     moveLog.addMove(move);
                                     gameHistoryPanel.redo(chessBoard, moveLog);
                                     takenPiecesPanel.redo(moveLog);
@@ -338,7 +371,12 @@ public class Table extends Observable {
                             }
                         }
                     }
-                    SwingUtilities.invokeLater(() -> boardPanel.drawBoard(chessBoard));
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            boardPanel.drawBoard(chessBoard);
+                        }
+                    });
                 }
 
                 @Override public void mousePressed(MouseEvent e) {}
@@ -358,7 +396,7 @@ public class Table extends Observable {
             if (board.getTile(this.tileId).isTileOccupied()) {
                 try {
                     final BufferedImage image = ImageIO.read(new File(PIECE_IMAGE_PATH +
-                            board.getTile(this.tileId).getPiece().getPieceAlliance().toString().charAt(0) +
+                            board.getTile(this.tileId).getPiece().getPieceAlliance().toString().substring(0, 1) +
                             board.getTile(this.tileId).getPiece().toString() + ".gif"));
                     add(new JLabel(new ImageIcon(image)));
                 } catch (IOException e) {
@@ -410,7 +448,7 @@ public class Table extends Observable {
         protected Move doInBackground() {
             final MoveStrategy minimax = new MiniMax(Table.get().getGameSetup().getSearchDepth());
             final MoveTransition transition = minimax.execute(Table.get().getGameBoard());
-            return transition.move();
+            return transition.getMove();
         }
 
         @Override

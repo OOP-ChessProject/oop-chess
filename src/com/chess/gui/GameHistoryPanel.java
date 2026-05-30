@@ -19,44 +19,59 @@ public class GameHistoryPanel extends JPanel {
     public GameHistoryPanel() {
         this.setLayout(new BorderLayout());
         this.model = new DataModel();
-        final JTable table = new JTable(this.model);
+        final JTable table = new JTable(model);
         table.setRowHeight(15);
         this.scrollPane = new JScrollPane(table);
-        this.scrollPane.setColumnHeaderView(table.getTableHeader());
-        this.scrollPane.setPreferredSize(HISTORY_PANEL_DIMENSION);
-        this.add(this.scrollPane, BorderLayout.CENTER);
+        scrollPane.setColumnHeaderView(table.getTableHeader());
+        scrollPane.setPreferredSize(HISTORY_PANEL_DIMENSION);
+        this.add(scrollPane, BorderLayout.CENTER);
         this.setVisible(true);
     }
 
-    /**
-     * Redraws the history panel based on the current state of the board and move log.
-     */
-    public void redo(final Board board, final MoveLog moveLog) {
+    public void redo(final Board board, final MoveLog moveHistory) {
         int currentRow = 0;
-        this.model.setRowCount(0);
-
-        final List<String> moveHistory = new ArrayList<>();
-        for (final Move move : moveLog.getMoves()) {
-            moveHistory.add(move.toString());
+        this.model.clear();
+        for (final Move move : moveHistory.getMoves()) {
+            final String moveText = move.toString();
+            if (move.getMovedPiece().getPieceAlliance().isWhite()) {
+                this.model.setValueAt(moveText, currentRow, 0);
+            } else if (move.getMovedPiece().getPieceAlliance().isBlack()) {
+                this.model.setValueAt(moveText, currentRow, 1);
+                currentRow++;
+            }
         }
 
-        // Bundle white and black moves sequentially into rows
-        for (int i = 0; i < moveHistory.size(); i += 2) {
-            final String whiteMove = moveHistory.get(i);
-            final String blackMove = (i + 1 < moveHistory.size()) ? moveHistory.get(i + 1) : "";
-            this.model.setValueAt(whiteMove, currentRow, 0);
-            this.model.setValueAt(blackMove, currentRow, 1);
-            currentRow++;
+        if(moveHistory.getMoves().size() > 0) {
+            final Move lastMove = moveHistory.getMoves().get(moveHistory.getMoves().size() - 1);
+            final String moveText = lastMove.toString();
+            if (lastMove.getMovedPiece().getPieceAlliance().isWhite()) {
+                this.model.setValueAt(moveText + calculateCheckAndCheckMateHash(board), currentRow, 0);
+            } else if (lastMove.getMovedPiece().getPieceAlliance().isBlack()) {
+                this.model.setValueAt(moveText + calculateCheckAndCheckMateHash(board), currentRow - 1, 1);
+            }
         }
 
-        // Automatically snap the scrollbar to the bottom row on update
-        final JScrollBar vertical = this.scrollPane.getVerticalScrollBar();
+        final JScrollBar vertical = scrollPane.getVerticalScrollBar();
         vertical.setValue(vertical.getMaximum());
     }
 
-    /**
-     * Custom lightweight TableModel implementation matching the video engine specifications.
-     */
+    private String calculateCheckAndCheckMateHash(final Board board) {
+        if(board.currentPlayer().isInCheck()) {
+            // Simple check ahead to see if they have any valid moves to escape check
+            boolean hasLegalMoves = false;
+            if (board.currentPlayer().getLegalMoves() != null) {
+                for (final Move move : board.currentPlayer().getLegalMoves()) {
+                    if (board.currentPlayer().makeMove(move).getMoveStatus().isDone()) {
+                        hasLegalMoves = true;
+                        break;
+                    }
+                }
+            }
+            return !hasLegalMoves ? "#" : "+";
+        }
+        return "";
+    }
+
     private static class DataModel extends DefaultTableModel {
 
         private final List<Row> values;
@@ -66,9 +81,17 @@ public class GameHistoryPanel extends JPanel {
             this.values = new ArrayList<>();
         }
 
+        public void clear() {
+            this.values.clear();
+            setRowCount(0);
+        }
+
         @Override
         public int getRowCount() {
-            return this.values == null ? 0 : this.values.size();
+            if(this.values == null) {
+                return 0;
+            }
+            return this.values.size();
         }
 
         @Override
@@ -77,57 +100,45 @@ public class GameHistoryPanel extends JPanel {
         }
 
         @Override
-        public Object getValueAt(final int row, final int column) {
+        public Object getValueAt(final int row, final int col) {
             final Row currentRow = this.values.get(row);
-            if (column == 0) {
+            if(col == 0) {
                 return currentRow.getWhiteMove();
-            } else if (column == 1) {
+            } else if(col == 1) {
                 return currentRow.getBlackMove();
             }
             return null;
         }
 
         @Override
-        public void setValueAt(final Object aValue, final int row, final int column) {
+        public void setValueAt(final Object aValue, final int row, final int col) {
             final Row currentRow;
-            if (this.values.size() <= row) {
+            if(this.values.size() <= row) {
                 currentRow = new Row();
                 this.values.add(currentRow);
             } else {
                 currentRow = this.values.get(row);
             }
-
-            if (column == 0) {
+            if(col == 0) {
                 currentRow.setWhiteMove((String) aValue);
-                this.fireTableRowsInserted(row, row);
-            } else if (column == 1) {
+                fireTableRowsInserted(row, row);
+            } else if(col == 1) {
                 currentRow.setBlackMove((String) aValue);
-                this.fireTableCellUpdated(row, column);
+                fireTableCellUpdated(row, col);
             }
         }
 
         @Override
-        public Class<?> getColumnClass(final int column) {
+        public Class<?> getColumnClass(final int col) {
             return String.class;
         }
 
         @Override
-        public String getColumnName(final int column) {
-            return NAMES[column];
-        }
-
-        @Override
-        public void setRowCount(final int rowCount) {
-            if (rowCount == 0) {
-                this.values.clear();
-            }
-            super.setRowCount(rowCount);
+        public String getColumnName(final int col) {
+            return NAMES[col];
         }
     }
 
-    /**
-     * Internal container representing a full round of moves (White and Black responses).
-     */
     private static class Row {
 
         private String whiteMove;
@@ -139,12 +150,12 @@ public class GameHistoryPanel extends JPanel {
             return this.whiteMove;
         }
 
-        public void setWhiteMove(final String move) {
-            this.whiteMove = move;
-        }
-
         public String getBlackMove() {
             return this.blackMove;
+        }
+
+        public void setWhiteMove(final String move) {
+            this.whiteMove = move;
         }
 
         public void setBlackMove(final String move) {

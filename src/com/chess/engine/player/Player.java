@@ -18,12 +18,17 @@ public abstract class Player {
     protected final Collection<Move> legalMoves;
     private final boolean isInCheck;
 
-    Player(final Board board, final Collection<Move> legalMoves, final Collection<Move> opponentMoves) {
+    Player(final Board board,
+           final Collection<Move> legalMoves,
+           final Collection<Move> opponentMoves) {
         this.board = board;
         this.playerKing = establishKing();
-        // Combine calculated legal moves with special moves like Castling later
-        this.legalMoves = legalMoves;
-        this.isInCheck = !Player.calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
+        // Combine standard legal moves with calculated valid castling options
+        List<Move> combinedMoves = new ArrayList<>(legalMoves);
+        combinedMoves.addAll(calculateKingCastles(legalMoves, opponentMoves));
+        this.legalMoves = Collections.unmodifiableCollection(combinedMoves);
+        // The player is in check if the opponent can attack the tile their king sits on
+        this.isInCheck = !Player.calculateAttackOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
     }
 
     public King getPlayerKing() {
@@ -34,23 +39,29 @@ public abstract class Player {
         return this.legalMoves;
     }
 
-    protected static Collection<Move> calculateAttacksOnTile(int tileCoordinate, Collection<Move> moves) {
+    // Filters down all opponent moves that are targeting a specific tile coordinate
+    public static Collection<Move> calculateAttackOnTile(int tile強化, Collection<Move> moves) {
         final List<Move> attackMoves = new ArrayList<>();
         for (final Move move : moves) {
-            if (tileCoordinate == move.getDestinationCoordinate()) {
+            if (tile強化 == move.getDestinationCoordinate()) {
                 attackMoves.add(move);
             }
         }
         return Collections.unmodifiableList(attackMoves);
     }
 
+    // Scans the active pieces to find the King
     private King establishKing() {
         for (final Piece piece : getActivePieces()) {
             if (piece.getPieceType().isKing()) {
                 return (King) piece;
             }
         }
-        throw new RuntimeException("Should not reach here! Invalid board layout: King missing.");
+        throw new RuntimeException("Should not reach here! Invalid board configuration: King missing.");
+    }
+
+    public boolean isMoveLegal(final Move move) {
+        return this.legalMoves.contains(move);
     }
 
     public boolean isInCheck() {
@@ -65,6 +76,7 @@ public abstract class Player {
         return !this.isInCheck && !hasEscapeMoves();
     }
 
+    // Checks if the player can make at least one move that doesn't leave them in check
     protected boolean hasEscapeMoves() {
         for (final Move move : this.legalMoves) {
             final MoveTransition transition = makeMove(move);
@@ -75,23 +87,33 @@ public abstract class Player {
         return false;
     }
 
+    public boolean isCastled() {
+        return false;
+    }
+
+    // Engine transaction core: attempts to execute a move on a speculative clone board
     public MoveTransition makeMove(final Move move) {
-        if (!this.legalMoves.contains(move)) {
-            return new MoveTransition(this.board, move, MoveStatus.ILLEGAL);
+        if (!isMoveLegal(move)) {
+            return new MoveTransition(this.board, move, MoveStatus.ILLEGAL_MOVE);
         }
+
         final Board transitionBoard = move.execute();
-        final Collection<Move> kingAttacks = Player.calculateAttacksOnTile(
+
+        // Find where our king ended up on the new board layout and check if the opponent can attack it
+        final Collection<Move> kingAttacks = Player.calculateAttackOnTile(
                 transitionBoard.currentPlayer().getOpponent().getPlayerKing().getPiecePosition(),
                 transitionBoard.currentPlayer().getLegalMoves());
 
         if (!kingAttacks.isEmpty()) {
-            return new MoveTransition(this.board, move, MoveStatus.LEAVING_PLAYER_IN_CHECK);
+            return new MoveTransition(this.board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK);
         }
+
         return new MoveTransition(transitionBoard, move, MoveStatus.DONE);
     }
 
     public abstract Collection<Piece> getActivePieces();
     public abstract Alliance getAlliance();
     public abstract Player getOpponent();
+    protected abstract Collection<Move> calculateKingCastles(Collection<Move> playerLegals, Collection<Move> opponentLegals);
 
 }
