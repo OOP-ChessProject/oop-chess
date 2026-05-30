@@ -2,7 +2,7 @@ package com.chess.engine.pieces;
 
 import com.chess.engine.Alliance;
 import com.chess.engine.board.Board;
-import com.chess.engine.board.Boardutils;
+import com.chess.engine.board.BoardUtils;
 import com.chess.engine.board.Move;
 import com.google.common.collect.ImmutableList;
 
@@ -32,7 +32,7 @@ public class Pawn extends Piece {
                     this.piecePosition +
                             (this.pieceAlliance.getDirection() * currentCandidateOffset);
 
-            if(!Boardutils.isValidTileCoordinate(candidateDestinationCoordinate)) {
+            if(!BoardUtils.isValidTileCoordinate(candidateDestinationCoordinate)) {
                 continue;
             }
 
@@ -46,9 +46,9 @@ public class Pawn extends Piece {
 
             } else if(currentCandidateOffset == 16 &&
                     this.isfirstMove() &&
-                    ((Boardutils.SECOND_ROW[this.piecePosition] &&
+                    ((BoardUtils.SECOND_ROW[this.piecePosition] &&
                             this.pieceAlliance.isBlack()) ||
-                            (Boardutils.SEVENTH_ROW[this.piecePosition] &&
+                            (BoardUtils.SEVENTH_ROW[this.piecePosition] &&
                                     this.pieceAlliance.isWhite()))) {
 
                 final int behindCandidateDestinationCoordinate =
@@ -65,9 +65,9 @@ public class Pawn extends Piece {
                 }
 
             } else if(currentCandidateOffset == 7 &&
-                    !((Boardutils.EIGHTH_COLUMN[this.piecePosition] &&
+                    !((BoardUtils.EIGHTH_COLUMN[this.piecePosition] &&
                             this.pieceAlliance.isWhite()) ||
-                            (Boardutils.FIRST_COLUMN[this.piecePosition] &&
+                            (BoardUtils.FIRST_COLUMN[this.piecePosition] &&
                                     this.pieceAlliance.isBlack()))) {
 
                 if(board.getTile(candidateDestinationCoordinate).isTileOccupied()) {
@@ -86,9 +86,9 @@ public class Pawn extends Piece {
                 }
 
             } else if(currentCandidateOffset == 9 &&
-                    !((Boardutils.FIRST_COLUMN[this.piecePosition] &&
+                    !((BoardUtils.FIRST_COLUMN[this.piecePosition] &&
                             this.pieceAlliance.isWhite()) ||
-                            (Boardutils.EIGHTH_COLUMN[this.piecePosition] &&
+                            (BoardUtils.EIGHTH_COLUMN[this.piecePosition] &&
                                     this.pieceAlliance.isBlack()))) {
 
                 if(board.getTile(candidateDestinationCoordinate).isTileOccupied()) {
