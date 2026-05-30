@@ -1,6 +1,4 @@
-package com.chess;
-
-import com.chess.gui.Table;
+package com.chess.gui;
 
 public class Main {
 
